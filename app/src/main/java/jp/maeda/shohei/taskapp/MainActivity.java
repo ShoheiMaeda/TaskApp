@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Button;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -24,11 +25,13 @@ public class MainActivity extends AppCompatActivity {
     private RealmChangeListener mRealmListener = new RealmChangeListener() {
         @Override
         public void onChange(Object element) {
-            reloadListView();
+            reloadListView1();
         }
     };
-    private ListView mListView;
+    private ListView mListView1;
+    private ListView mListView2;
     private TaskAdapter mTaskAdapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,16 +47,26 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Button category = (Button) findViewById(R.id.category);
+        category.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, InputActivity.class);
+                startActivity(intent);
+            }
+        });
+
         // Realmの設定
         mRealm = Realm.getDefaultInstance();
         mRealm.addChangeListener(mRealmListener);
 
         // ListViewの設定
         mTaskAdapter = new TaskAdapter(MainActivity.this);
-        mListView = (ListView) findViewById(R.id.listView1);
+        mListView1 = (ListView) findViewById(R.id.listView1);
+        mListView2 = (ListView) findViewById(R.id.listView2);
 
-        // ListViewをタップしたときの処理
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        // ListView1をタップしたときの処理
+        mListView1.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 // 入力・編集する画面に遷移させる
@@ -66,8 +79,22 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // ListViewを長押ししたときの処理
-        mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        // ListView2をタップしたときの処理
+        mListView2.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // 入力・編集する画面に遷移させる
+                Task task = (Task) parent.getAdapter().getItem(position);
+
+                Intent intent = new Intent(MainActivity.this, InputActivity.class);
+                intent.putExtra(EXTRA_TASK, task.getId());
+
+                startActivity(intent);
+            }
+        });
+
+        // ListView1を長押ししたときの処理
+        mListView1.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
 
@@ -101,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
                         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
                         alarmManager.cancel(resultPendingIntent);
 
-                        reloadListView();
+                        reloadListView1();
                     }
                 });
                 builder.setNegativeButton("CANCEL", null);
@@ -113,16 +140,27 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        reloadListView();
+        reloadListView1();
     }
 
-    private void reloadListView() {
+    private void reloadListView1() {
         // Realmデータベースから、「全てのデータを取得して新しい日時順に並べた結果」を取得
         RealmResults<Task> taskRealmResults = mRealm.where(Task.class).findAllSorted("date", Sort.DESCENDING);
         // 上記の結果を、TaskList としてセットする
         mTaskAdapter.setTaskList(mRealm.copyFromRealm(taskRealmResults));
         // TaskのListView用のアダプタに渡す
-        mListView.setAdapter(mTaskAdapter);
+        mListView1.setAdapter(mTaskAdapter);
+        // 表示を更新するために、アダプターにデータが変更されたことを知らせる
+        mTaskAdapter.notifyDataSetChanged();
+    }
+
+    private void reloadListView2() {
+        // Realmデータベースから、「全てのデータを取得して入力カテゴリーと同じ文字列」を取得
+        RealmResults<Task> taskRealmResults = mRealm.where(Task.class).equalTo("category",id/category_edit_text).findAll();
+        // 上記の結果を、TaskList としてセットする
+        mTaskAdapter.setTaskList(mRealm.copyFromRealm(taskRealmResults));
+        // TaskのListView用のアダプタに渡す
+        mListView1.setAdapter(mTaskAdapter);
         // 表示を更新するために、アダプターにデータが変更されたことを知らせる
         mTaskAdapter.notifyDataSetChanged();
     }
