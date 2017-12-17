@@ -6,7 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Button;
+import android.widget.Button;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Button category = (Button) findViewById(R.id.category);
+        Button category = (Button) findViewById(R.id.category_search);
         category.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -156,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void reloadListView2() {
         // Realmデータベースから、「全てのデータを取得して入力カテゴリーと同じ文字列」を取得
-        RealmResults<Task> taskRealmResults = mRealm.where(Task.class).equalTo("category",id/category_edit_text).findAll();
+        RealmResults<Task> taskRealmResults = mRealm.where(Task.class).equalTo("category",id/category_edittext).findAll();
         // 上記の結果を、TaskList としてセットする
         mTaskAdapter.setTaskList(mRealm.copyFromRealm(taskRealmResults));
         // TaskのListView用のアダプタに渡す
