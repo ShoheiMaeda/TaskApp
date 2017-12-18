@@ -11,6 +11,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import io.realm.Realm;
@@ -47,12 +48,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Button category = (Button) findViewById(R.id.category_search);
+        Button category = (Button) findViewById(R.id.category_button);
         category.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, InputActivity.class);
-                startActivity(intent);
+
+                EditText editText = (EditText) findViewById(R.id.category_search);
+                String search = editText.getText().toString();
+
+                if(search.length()==0){
+                    reloadListView1();
+                }else{
+                    reloadListView2(search);
+                }
             }
         });
 
@@ -63,7 +71,6 @@ public class MainActivity extends AppCompatActivity {
         // ListViewの設定
         mTaskAdapter = new TaskAdapter(MainActivity.this);
         mListView1 = (ListView) findViewById(R.id.listView1);
-        mListView2 = (ListView) findViewById(R.id.listView2);
 
         // ListView1をタップしたときの処理
         mListView1.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -79,19 +86,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // ListView2をタップしたときの処理
-        mListView2.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                // 入力・編集する画面に遷移させる
-                Task task = (Task) parent.getAdapter().getItem(position);
-
-                Intent intent = new Intent(MainActivity.this, InputActivity.class);
-                intent.putExtra(EXTRA_TASK, task.getId());
-
-                startActivity(intent);
-            }
-        });
 
         // ListView1を長押ししたときの処理
         mListView1.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -154,9 +148,9 @@ public class MainActivity extends AppCompatActivity {
         mTaskAdapter.notifyDataSetChanged();
     }
 
-    private void reloadListView2() {
+    private void reloadListView2(String search) {
         // Realmデータベースから、「全てのデータを取得して入力カテゴリーと同じ文字列」を取得
-        RealmResults<Task> taskRealmResults = mRealm.where(Task.class).equalTo("category",id/category_edittext).findAll();
+        RealmResults<Task> taskRealmResults = mRealm.where(Task.class).equalTo("category",search).findAllSorted("date", Sort.DESCENDING);
         // 上記の結果を、TaskList としてセットする
         mTaskAdapter.setTaskList(mRealm.copyFromRealm(taskRealmResults));
         // TaskのListView用のアダプタに渡す
